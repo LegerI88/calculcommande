@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calcule la commande — Attention aux pièges !</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#20263B;
+    --paper:#FBF8F2;
+    --card:#FFFFFF;
+    --main:#2F6FED; --main-light:#E7EFFF; --main-dark:#1948B8;
+    --gold:#F2B705;
+    --ok:#1FA971; --ok-light:#E1FAEE;
+    --ko:#E0483E; --ko-light:#FDE7E5;
+    --piege:#F08A24; --piege-light:#FFF1DF;
+    --radius:20px;
+    --shadow: 0 6px 20px rgba(32,38,59,0.08);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'Nunito', sans-serif; font-size:17px; line-height:1.55;
+    padding-bottom:80px;
+  }
+  h1,h2,.title-font{font-family:'Baloo 2', sans-serif; font-weight:800; line-height:1.15; margin:0;}
+
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    background:rgba(251,248,242,0.94); backdrop-filter: blur(6px);
+    border-bottom:3px solid #20263B12; padding:10px 16px;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  }
+  .brand{font-family:'Baloo 2',sans-serif; font-weight:800; font-size:1.05rem; display:flex; align-items:center; gap:8px; margin-right:auto;}
+  .progress-mini{display:flex; align-items:center; gap:10px; font-weight:700; font-size:0.9rem;}
+  .progress-track-mini{width:160px; background:#20263B14; border-radius:999px; height:12px; overflow:hidden;}
+  .progress-fill-mini{height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg, var(--main), var(--gold)); transition:width .5s ease;}
+
+  .hero{max-width:880px; margin:0 auto; padding:44px 20px 10px; text-align:center;}
+  .hero .kicker{
+    display:inline-block; background:var(--gold); color:#5A4300; font-weight:800; font-size:0.85rem;
+    padding:6px 16px; border-radius:999px; margin-bottom:16px; transform:rotate(-2deg);
+  }
+  .hero h1{font-size:2.3rem; background:linear-gradient(90deg, var(--main), #6E27A8); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .hero p.sub{font-size:1.1rem; margin-top:12px; color:#3D4360; max-width:620px; margin-left:auto; margin-right:auto;}
+
+  .formula-box{
+    max-width:620px; margin:26px auto 0; background:var(--main-light); border-radius:16px; padding:16px 20px;
+    display:flex; gap:12px; align-items:center; box-shadow:var(--shadow); text-align:left;
+  }
+  .formula-box .emoji{font-size:1.8rem;}
+  .formula-box b{display:block; margin-bottom:2px;}
+  .formula-box .formula{font-family:'Baloo 2',sans-serif; font-weight:700; color:var(--main-dark); font-size:1.05rem;}
+
+  .section{max-width:820px; margin:40px auto 0; padding:0 20px;}
+
+  .exo{
+    background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
+    margin-bottom:26px; overflow:hidden; scroll-margin-top:80px;
+  }
+  .exo-head{
+    padding:16px 22px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    background:var(--main); color:#fff;
+  }
+  .exo-head .titlewrap{display:flex; align-items:center; gap:12px;}
+  .exo-head .exonum{
+    width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,0.25);
+    display:flex; align-items:center; justify-content:center; font-family:'Baloo 2',sans-serif; font-weight:800;
+  }
+  .exo-head h2{font-size:1.15rem;}
+  .difficulty{
+    font-size:0.72rem; font-weight:800; padding:4px 12px; border-radius:999px; background:rgba(255,255,255,0.25);
+  }
+  .exo-body{padding:22px;}
+  .statement{background:#20263B08; border-radius:14px; padding:14px 16px; margin-bottom:16px; font-weight:700;}
+  .statement .sub-line{font-weight:400; display:block; margin-top:6px; color:#3D4360;}
+  .question{font-weight:800; margin-bottom:10px;}
+
+  .answer-row{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:6px;}
+  input[type="number"]{
+    font-family:'Nunito',sans-serif; font-size:1.05rem; font-weight:800;
+    padding:9px 14px; border-radius:10px; border:2px solid #20263B22; width:120px;
+  }
+  .unit-label{font-weight:700; opacity:0.75;}
+
+  .btn{
+    border:none; cursor:pointer; font-family:'Nunito',sans-serif; font-weight:800; font-size:0.95rem;
+    padding:11px 20px; border-radius:999px; color:#fff; background:var(--main);
+    box-shadow:0 4px 0 rgba(0,0,0,0.15); transition:transform .1s ease;
+  }
+  .btn:active{transform:translateY(3px); box-shadow:none;}
+  .btn.secondary{background:#20263B; opacity:0.85;}
+
+  .feedback{margin-top:14px; padding:12px 16px; border-radius:12px; font-weight:800; display:none;}
+  .feedback.show{display:block;}
+  .feedback.ok{background:var(--ok-light); color:var(--ok);}
+  .feedback.ko{background:var(--ko-light); color:var(--ko);}
+
+  .reveal-box{margin-top:12px;}
+  .reveal-content{display:none; padding:16px 18px; background:var(--piege-light); border-radius:14px; margin-top:10px; border-left:5px solid var(--piege);}
+  .reveal-content.show{display:block;}
+  .reveal-content .trap-tag{
+    display:inline-block; background:var(--piege); color:#fff; font-size:0.72rem; font-weight:800;
+    padding:3px 10px; border-radius:999px; margin-bottom:8px;
+  }
+  .reveal-content .step{margin:6px 0;}
+  .reveal-content .final{font-weight:800; margin-top:8px; color:var(--main-dark);}
+
+  .score-final{
+    text-align:center; background:linear-gradient(135deg, var(--main), #6E27A8); color:#fff;
+    border-radius:var(--radius); padding:30px; margin-top:10px;
+  }
+  .score-final .num{font-family:'Baloo 2',sans-serif; font-size:2.6rem; font-weight:800;}
+
+  footer{text-align:center; margin-top:60px; padding:30px 20px; font-size:0.85rem; color:#20263B77;}
+
+  @media (max-width:640px){
+    .hero h1{font-size:1.7rem;}
+    .exo-head{flex-direction:column; align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">🧮 Calcule la commande</div>
+  <div class="progress-mini">
+    Score : <span id="global-count">0</span>/10 ✅
+    <div class="progress-track-mini"><div class="progress-fill-mini" id="global-fill"></div></div>
+  </div>
+</div>
+
+<div class="hero">
+  <span class="kicker">⚠️ Attention, il y a des pièges !</span>
+  <h1>Calcule la commande à passer</h1>
+  <p class="sub">10 exercices pour t'entraîner à calculer une quantité à commander : 3 faciles, 3 moyens, 3 difficiles et 1 défi final. Certains sont simples, d'autres cachent un petit piège... Lis bien l'énoncé avant de répondre ! 🔍</p>
+
+  <div class="formula-box">
+    <div class="emoji">💡</div>
+    <div>
+      <b>La formule de base à connaître par cœur :</b>
+      <span class="formula">Quantité à commander = Stock de sécurité + Ventes prévues − Stock disponible</span>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="exos"></div>
+
+<div class="section">
+  <div class="score-final" id="score-final" style="display:none;">
+    <div>Résultat final</div>
+    <div class="num" id="score-final-num">0/7</div>
+    <div id="score-final-msg"></div>
+    <button class="btn secondary" style="margin-top:14px;" onclick="resetAll()">🔁 Recommencer tous les exercices</button>
+  </div>
+</div>
+
+<footer>1EPC1 — Entraînement au calcul de commande 🧮 Un petit piège n'a jamais fait peur à un bon équipier !</footer>
+
+<script>
+const exos = [
+  {
+    diff:"Facile — échauffement",
+    title:"Le rayon papeterie",
+    statement:"Au rayon papeterie, on vend en moyenne <b>50 stylos par semaine</b>.<br>Le stock de sécurité fixé par le magasin est de <b>10 stylos</b>.<br>Il reste actuellement <b>12 stylos</b> en rayon et en réserve.",
+    question:"Combien de stylos faut-il commander pour la semaine prochaine ?",
+    unit:"stylos",
+    answer:48,
+    trapTag:null,
+    explanation:[
+      "On applique directement la formule : Stock de sécurité + Ventes prévues − Stock disponible.",
+      "10 (stock de sécurité) + 50 (ventes prévues) − 12 (ce qu'il reste) = <b>48 stylos</b> à commander."
+    ]
+  },
+  {
+    diff:"Facile — échauffement",
+    title:"Le rayon quincaillerie",
+    statement:"Au rayon quincaillerie, on vend en moyenne <b>25 boîtes de vis par semaine</b>.<br>Le stock de sécurité fixé par le magasin est de <b>8 boîtes</b>.<br>Il reste actuellement <b>6 boîtes</b> en stock.",
+    question:"Combien de boîtes de vis faut-il commander ?",
+    unit:"boîtes",
+    answer:27,
+    trapTag:null,
+    explanation:[
+      "On applique directement la formule, sans piège cette fois.",
+      "8 (stock de sécurité) + 25 (ventes prévues) − 6 (ce qu'il reste) = <b>27 boîtes</b> à commander."
+    ]
+  },
+  {
+    diff:"Facile — échauffement",
+    title:"Le rayon fruits et légumes",
+    statement:"Au rayon fruits et légumes, on vend en moyenne <b>45 kg de pommes par semaine</b>.<br>Le stock de sécurité est de <b>12 kg</b>.<br>Il reste actuellement <b>20 kg</b> de pommes en stock.",
+    question:"Combien de kg de pommes faut-il commander ?",
+    unit:"kg",
+    answer:37,
+    trapTag:null,
+    explanation:[
+      "Encore une fois, on applique directement la formule de base.",
+      "12 (stock de sécurité) + 45 (ventes prévues) − 20 (ce qu'il reste) = <b>37 kg</b> à commander."
+    ]
+  },
+  {
+    diff:"Moyen — piège n°1",
+    title:"Les packs d'eau abîmés",
+    statement:"Au rayon boissons, on vend en moyenne <b>80 packs d'eau par semaine</b>.<br>Le stock de sécurité est de <b>15 packs</b>.<br>Il reste <b>25 packs</b> en réserve, mais <b>5 d'entre eux sont abîmés</b> (les cartons sont éventrés, on ne peut pas les vendre).",
+    question:"Combien de packs d'eau faut-il commander ?",
+    unit:"packs",
+    answer:75,
+    trapTag:"⚠️ Piège : les produits abîmés ne comptent pas dans le stock !",
+    explanation:[
+      "Le piège : les 5 packs abîmés ne peuvent pas être vendus, donc ils ne font pas partie du <b>stock réellement disponible</b>.",
+      "Stock disponible réel = 25 − 5 = 20 packs (et non 25 !).",
+      "15 (stock de sécurité) + 80 (ventes prévues) − 20 (stock réel) = <b>75 packs</b> à commander."
+    ]
+  },
+  {
+    diff:"Moyen — piège n°2",
+    title:"Les cartons de conserves",
+    statement:"Au rayon épicerie, on vend en moyenne <b>130 boîtes de conserve par semaine</b>.<br>Le stock de sécurité est de <b>20 boîtes</b>.<br>Il reste <b>40 boîtes</b> en stock.<br>Le fournisseur ne vend ses conserves que par <b>cartons de 12 boîtes</b> : on ne peut pas commander une boîte toute seule !",
+    question:"Combien de cartons complets faut-il commander ?",
+    unit:"cartons",
+    answer:10,
+    trapTag:"⚠️ Piège : il faut arrondir au carton complet !",
+    explanation:[
+      "D'abord, on calcule le besoin en boîtes avec la formule habituelle : 20 + 130 − 40 = 110 boîtes.",
+      "Mais le fournisseur vend par cartons de 12 boîtes. 110 ÷ 12 = 9,16... On ne peut pas commander 0,16 carton !",
+      "Il faut toujours <b>arrondir au carton supérieur</b> pour être sûr d'avoir assez de stock : on commande donc <b>10 cartons</b> (soit 120 boîtes)."
+    ]
+  },
+  {
+    diff:"Moyen — piège n°3",
+    title:"Le rayon et la réserve",
+    statement:"Au rayon petit-déjeuner, on vend en moyenne <b>70 pots de confiture par semaine</b>.<br>Le stock de sécurité est de <b>15 pots</b>.<br>Il reste <b>10 pots en rayon</b> ET <b>18 pots en réserve</b>.",
+    question:"Combien de pots de confiture faut-il commander ?",
+    unit:"pots",
+    answer:57,
+    trapTag:"⚠️ Piège : le stock est donné en deux morceaux !",
+    explanation:[
+      "Le piège : le stock disponible n'est pas donné en un seul chiffre. Il faut penser à additionner ce qui est en rayon ET ce qui est en réserve avant de calculer.",
+      "Stock disponible total = 10 (rayon) + 18 (réserve) = 28 pots.",
+      "15 (stock de sécurité) + 70 (ventes prévues) − 28 (stock total) = <b>57 pots</b> à commander."
+    ]
+  },
+  {
+    diff:"Difficile — piège n°4",
+    title:"Une commande déjà en route",
+    statement:"Au rayon frais, on vend en moyenne <b>90 yaourts par semaine</b>.<br>Le stock de sécurité est de <b>25 yaourts</b>.<br>Il reste <b>30 yaourts</b> en rayon.<br>Une <b>commande de 40 yaourts a déjà été passée</b> la semaine dernière et va arriver <b>demain</b> (avant que la nouvelle commande n'arrive).",
+    question:"Combien de yaourts faut-il commander en plus ?",
+    unit:"yaourts",
+    answer:45,
+    trapTag:"⚠️ Piège : il ne faut pas oublier ce qui va bientôt arriver !",
+    explanation:[
+      "Le piège : les 40 yaourts déjà commandés vont bientôt arriver. Ils font donc partie de ce qu'on va avoir en stock, même s'ils ne sont pas encore là.",
+      "Stock disponible total = ce qu'il reste + ce qui arrive bientôt = 30 + 40 = 70 yaourts.",
+      "25 (stock de sécurité) + 90 (ventes prévues) − 70 (stock total disponible) = <b>45 yaourts</b> à commander.",
+      "Si on avait oublié les 40 déjà commandés, on aurait commandé beaucoup trop et créé un surstock !"
+    ]
+  },
+  {
+    diff:"Difficile — piège n°5",
+    title:"Le chiffre qui trompe",
+    statement:"Au rayon jouets, on vend d'habitude <b>30 jouets par semaine</b>.<br>Le mois dernier, il y a eu une <b>rupture de stock</b> chez le fournisseur : le magasin n'a exceptionnellement vendu que <b>10 jouets</b> cette semaine-là, faute de stock. Ce chiffre n'est pas normal.<br>Pour la semaine prochaine, les ventes prévues restent les ventes habituelles : <b>30 jouets</b>.<br>Le stock de sécurité est de <b>12 jouets</b>.<br>Il reste <b>8 jouets</b> en stock.",
+    question:"Combien de jouets faut-il commander ?",
+    unit:"jouets",
+    answer:34,
+    trapTag:"⚠️ Piège : un chiffre de l'énoncé ne sert à rien !",
+    explanation:[
+      "Le piège : le chiffre de « 10 jouets vendus » ne doit pas être utilisé. C'était une semaine anormale à cause d'une rupture de stock, donc ce n'est pas une bonne estimation des ventes futures.",
+      "Il faut utiliser les <b>ventes habituelles</b> pour prévoir la semaine prochaine, soit 30 jouets.",
+      "12 (stock de sécurité) + 30 (ventes prévues normales) − 8 (ce qu'il reste) = <b>34 jouets</b> à commander.",
+      "Dans un énoncé, il y a parfois une information qui ne sert pas au calcul : il faut bien lire pour repérer les chiffres utiles."
+    ]
+  },
+  {
+    diff:"Difficile — piège n°6",
+    title:"Cartons ou bouteilles ?",
+    statement:"Au rayon épicerie, on vend en moyenne <b>8 cartons de jus par semaine</b> (chaque carton contient <b>6 bouteilles</b>).<br>Le stock de sécurité est fixé à <b>24 bouteilles</b>.<br>Il reste <b>30 bouteilles</b> en stock (attention, ce chiffre est en bouteilles, pas en cartons !).",
+    question:"Combien de cartons de jus faut-il commander ?",
+    unit:"cartons",
+    answer:7,
+    trapTag:"⚠️ Piège : il ne faut pas mélanger les unités !",
+    explanation:[
+      "Le piège : les ventes sont données en <b>cartons</b>, mais le stock est donné en <b>bouteilles</b>. Il faut tout mettre dans la même unité avant de calculer !",
+      "Ventes prévues en bouteilles = 8 cartons × 6 bouteilles = 48 bouteilles.",
+      "24 (stock de sécurité) + 48 (ventes prévues) − 30 (stock restant) = 42 bouteilles à commander.",
+      "On repasse en cartons : 42 ÷ 6 = <b>7 cartons</b> à commander."
+    ]
+  },
+  {
+    diff:"Défi final — double piège",
+    title:"La rentrée scolaire (défi)",
+    statement:"Au rayon papeterie, on vend d'habitude <b>20 trousses par semaine</b>. Mais c'est bientôt la <b>rentrée scolaire</b> : les ventes vont <b>doubler</b> (× 2).<br>Le stock de sécurité est de <b>10 trousses</b>.<br>Il reste <b>5 trousses</b> en stock.<br>Le fournisseur vend uniquement par <b>cartons de 8 trousses</b>.",
+    question:"Combien de cartons complets faut-il commander ?",
+    unit:"cartons",
+    answer:6,
+    trapTag:"⚠️ Double piège : hausse des ventes ET arrondi au carton !",
+    explanation:[
+      "Étape 1 — Corriger les ventes prévues : les ventes doublent, donc 20 × 2 = 40 trousses prévues.",
+      "Étape 2 — Appliquer la formule : 10 (stock de sécurité) + 40 (ventes prévues) − 5 (stock restant) = 45 trousses.",
+      "Étape 3 — Le fournisseur vend par cartons de 8 : 45 ÷ 8 = 5,6... On arrondit toujours au carton supérieur.",
+      "Réponse finale : <b>6 cartons</b> (soit 48 trousses) à commander."
+    ]
+  }
+];
+
+const doneFlags = new Array(exos.length).fill(false);
+
+function updateGlobalProgress(){
+  const count = doneFlags.filter(Boolean).length;
+  document.getElementById('global-count').textContent = count;
+  document.getElementById('global-fill').style.width = (count/exos.length*100)+'%';
+  if(count === exos.length){
+    document.getElementById('score-final').style.display = 'block';
+    document.getElementById('score-final-num').textContent = count+'/'+exos.length;
+    document.getElementById('score-final-msg').textContent = "Bravo, tu as réussi tous les exercices, même les pièges ! 🏆";
+    document.getElementById('score-final').scrollIntoView({behavior:'smooth', block:'center'});
+  }
+}
+
+function renderExos(){
+  const container = document.getElementById('exos');
+  container.innerHTML = '';
+  exos.forEach((ex, i)=>{
+    const card = document.createElement('div');
+    card.className = 'exo';
+    card.id = 'exo-'+i;
+    card.innerHTML = `
+      <div class="exo-head">
+        <div class="titlewrap">
+          <div class="exonum">${i+1}</div>
+          <h2>${ex.title}</h2>
+        </div>
+        <span class="difficulty">${ex.diff}</span>
+      </div>
+      <div class="exo-body">
+        <div class="statement">${ex.statement}</div>
+        <p class="question">${ex.question}</p>
+        <div class="answer-row">
+          <input type="number" id="input-${i}" placeholder="?">
+          <span class="unit-label">${ex.unit}</span>
+          <button class="btn" onclick="checkExo(${i})">Vérifier ma réponse</button>
+        </div>
+        <div class="feedback" id="feedback-${i}"></div>
+        <div class="reveal-box">
+          <button class="btn secondary" onclick="toggleReveal(${i})">👀 Voir l'explication complète</button>
+          <div class="reveal-content" id="reveal-${i}">
+            ${ex.trapTag ? `<span class="trap-tag">${ex.trapTag}</span>` : ''}
+            ${ex.explanation.map(s=>`<div class="step">${s}</div>`).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function checkExo(i){
+  const input = document.getElementById('input-'+i);
+  const val = parseInt(input.value, 10);
+  const fb = document.getElementById('feedback-'+i);
+  fb.classList.add('show');
+  if(val === exos[i].answer){
+    fb.className = 'feedback show ok';
+    fb.textContent = "Bravo, c'est la bonne réponse ! 🎉 (" + exos[i].answer + " " + exos[i].unit + ")";
+    doneFlags[i] = true;
+  } else {
+    fb.className = 'feedback show ko';
+    fb.textContent = "Pas encore la bonne réponse. Relis bien l'énoncé, il y a peut-être un piège... Clique sur \"Voir l'explication\" si tu es bloqué.";
+  }
+  updateGlobalProgress();
+}
+
+function toggleReveal(i){
+  document.getElementById('reveal-'+i).classList.toggle('show');
+}
+
+function resetAll(){
+  doneFlags.fill(false);
+  document.getElementById('score-final').style.display = 'none';
+  renderExos();
+  updateGlobalProgress();
+  document.getElementById('exos').scrollIntoView({behavior:'smooth'});
+}
+
+renderExos();
+</script>
+
+</body>
+</html>
